@@ -1,6 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 
 const reportError = (operation, res, err, msgMap) => {
+  // eslint-disable-next-line no-console
   console.log(`${operation}: ${err}`);
   let httpCode = StatusCodes.INTERNAL_SERVER_ERROR;
   if (err.name === 'CastError' || err.name === 'ValidationError') {

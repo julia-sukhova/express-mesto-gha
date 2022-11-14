@@ -18,15 +18,16 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteIdCards = (req, res) => {
-  Card.findByIdAndRemove(req.params.id)
+  Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
-        throw newNotFoundError(`card with id=${req.params.id} doesn't exist`);
+        throw newNotFoundError(`card with id=${req.params.cardId} doesn't exist`);
       }
       res.send({ data: card });
     })
     .catch((err) => reportError('deleteIdCards', res, err, {
       404: 'Карточка с указанным _id не найдена.',
+      400: 'Переданы некорректные данные при удалении карточки.',
     }));
 };
 
