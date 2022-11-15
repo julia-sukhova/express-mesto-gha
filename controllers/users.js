@@ -1,59 +1,73 @@
-const { reportError, newNotFoundError } = require('../util/error');
+const { StatusCodes } = require('http-status-codes');
 
 const User = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((user) => res.send({ data: user }))
-    .catch((err) => reportError('getUsers', res, err, {}));
+    .catch(() => res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' }));
 };
 
 module.exports.getIdUser = (req, res) => {
   User.findById(req.params.userId)
+    .orFail()
     .then((user) => {
-      if (!user) {
-        throw newNotFoundError(`user with id=${req.params.userId} doesn't exist`);
-      }
       res.send({ data: user });
     })
-    .catch((err) => reportError('getIdUser', res, err, {
-      400: 'Переданы некорректные данные при запросе данных пользователя.',
-      404: 'Пользователь по указанному _id не найден.',
-    }));
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(StatusCodes.NOT_FOUND).send({ message: 'Пользователь с заданным _id не найден.' });
+      } else if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные для получения пользователя.' });
+      } else {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' });
+      }
+    });
 };
 
 module.exports.postUser = (req, res) => {
-  User.create(req.body)
+  const { name, about, avatar } = req.body;
+  User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
-    .catch((err) => reportError('postUser', res, err, {
-      400: 'Переданы некорректные данные при создании пользователя.',
-    }));
+    .catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя.' });
+      } else {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' });
+      }
+    });
 };
 
 module.exports.updateUser = (req, res) => {
   User.findByIdAndUpdate(req.user._id, req.body, { runValidators: true, new: true })
+    .orFail()
     .then((user) => {
-      if (!user) {
-        throw newNotFoundError(`user with id=${req.user._id} doesn't exist`);
-      }
       res.send({ data: user });
     })
-    .catch((err) => reportError('updateUser', res, err, {
-      400: 'Переданы некорректные данные при обновлении профиля.',
-      404: 'Пользователь с указанным _id не найден.',
-    }));
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(StatusCodes.NOT_FOUND).send({ message: 'Пользователь с заданным _id не найден.' });
+      } else if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении пользователя.' });
+      } else {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' });
+      }
+    });
 };
 
 module.exports.updateAvatar = (req, res) => {
   User.findByIdAndUpdate(req.user._id, req.body, { runValidators: true, new: true })
+    .orFail()
     .then((user) => {
-      if (!user) {
-        throw newNotFoundError(`user with id=${req.user._id} doesn't exist`);
-      }
       res.send({ data: user });
     })
-    .catch((err) => reportError('updateAvatar', res, err, {
-      400: 'Переданы некорректные данные при обновлении аватара.',
-      404: 'Пользователь с указанным _id не найден.',
-    }));
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(StatusCodes.NOT_FOUND).send({ message: 'Пользователь с заданным _id не найден.' });
+      } else if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
+      } else {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' });
+      }
+    });
 };

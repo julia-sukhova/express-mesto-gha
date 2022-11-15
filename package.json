@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "lint": "npx eslint",
+    "lint": "npx eslint \"**/*.js\" --ignore-pattern node_modules/",
     "dev": "nodemon app.js",
     "start": "node app.js"
   },
