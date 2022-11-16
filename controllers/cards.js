@@ -29,7 +29,7 @@ module.exports.deleteIdCards = (req, res) => {
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {
         res.status(StatusCodes.NOT_FOUND).send({ message: 'Передан несуществующий _id карточки.' });
-      } else if (err.name === 'CastError' || err.name === 'ValidationError') {
+      } else if (err.name === 'CastError') {
         res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные при удалении карточки.' });
       } else {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' });

@@ -17,7 +17,7 @@ module.exports.getIdUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {
         res.status(StatusCodes.NOT_FOUND).send({ message: 'Пользователь с заданным _id не найден.' });
-      } else if (err.name === 'CastError' || err.name === 'ValidationError') {
+      } else if (err.name === 'CastError') {
         res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные для получения пользователя.' });
       } else {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' });
@@ -30,7 +30,7 @@ module.exports.postUser = (req, res) => {
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
+      if (err.name === 'ValidationError') {
         res.status(StatusCodes.BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя.' });
       } else {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Ошибка по умолчанию.' });
