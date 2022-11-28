@@ -1,30 +1,45 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { celebrate, Joi, errors } = require('celebrate');
+const { login, postUser } = require('./controllers/users');
+const authMiddleware = require('./middlewares/auth');
+const { URL_VALIDATE_REGEX } = require('./utils/consts');
+
+mongoose.connect('mongodb://localhost:27017/mestodb');
 
 const { PORT = 3000 } = process.env;
 const app = express();
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '637118f5e521d2b0657d7940',
-  };
-
-  next();
-});
+app.use(cookieParser());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+app.post('/signin', celebrate({
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }),
+}), login);
 
-app.use(require('./routes/users'));
-app.use(require('./routes/cards'));
+app.post('/signup', celebrate({
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+    name: Joi.string().min(2).max(30).optional(),
+    about: Joi.string().min(2).max(30).optional(),
+    avatar: Joi.string().regex(URL_VALIDATE_REGEX).optional(),
+  }),
+}), postUser);
 
-app.use((req, res) => {
-  res.status(404);
-  res.json({ message: 'Задан некорректный путь' });
-});
+app.use('/users', authMiddleware, require('./routes/users'));
+app.use('/cards', authMiddleware, require('./routes/cards'));
+
+app.use(errors());
+app.use(require('./middlewares/path-trap'));
+app.use(require('./middlewares/error'));
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
